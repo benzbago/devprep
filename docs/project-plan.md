@@ -1,6 +1,6 @@
 # DevPrep AI Project Plan
 
-**Status:** Phase 1 completed locally on 2026-11-04; later phases require separate approval
+**Status:** Phases 1 and 2 completed and verified locally; hosted CI and production remain unverified
 
 **Last updated:** 2026-11-04
 **Product description:** A developer learning platform with a clearly labeled AI tutor demo. Version 1 does not use a live AI model and does not execute code.
@@ -64,7 +64,7 @@ Version 1 is a personal, non-commercial portfolio application. It must be possib
 - AI-generated quizzes, recommendations, or challenge content.
 - Monaco or another IDE-scale editor.
 - Charts and elaborate dashboards.
-- Autonomous agents, LangChain, LangGraph, Redis, Docker, queues, or an additional backend framework.
+- Autonomous agents, LangChain, LangGraph, Redis, containerized application infrastructure, queues, or an additional backend framework. A pre-existing Docker-compatible runtime may be used only to run the official local Supabase test stack.
 - Payments, subscriptions, commercial use, and paid platform features.
 
 ## 4. Architecture
@@ -76,9 +76,13 @@ Browser (untrusted)
   ├─ React pages, public demo, and public sample quiz
   ├─ Supabase Auth client using public configuration
   └─ authenticated requests carrying a Supabase access token
+              ├──────────────► Supabase Data API (Phase 2 draft CRUD)
+              │                         │
+              │                         ▼
+              │               PostgreSQL grants and RLS
               │
               ▼
-Vercel Functions (server enforcement boundary)
+Vercel Functions (Phase 3 server enforcement boundary)
   ├─ validate requests with Zod
   ├─ verify authentication and derive user identity
   ├─ check ownership
@@ -204,12 +208,14 @@ Use Vite for the fast frontend development loop. Use `vercel dev` when integrate
 
 **Scope**
 
-- Add Supabase Auth and server-side auth verification helpers.
+- Add optional Supabase email/password Auth in the browser; reserve server-side verification for later privileged APIs.
 - Add reproducible migrations, explicit grants, and RLS.
 - Add user-owned JavaScript draft editing and persistence.
 - Label all drafts “Not executed or verified.”
 - Add ownership and denied-access database tests.
-- Keep the public unsigned demo independent of Supabase.
+- Keep the public unsigned demo independent of Supabase configuration or availability.
+- Represent loading, errors, expired sessions, and signed-out states, and clear private state on account changes.
+- Document local Mailpit use and defer hosted public-signup email configuration.
 
 ### Phase 3 — Curated quizzes, server-side grading, and progress
 
@@ -321,7 +327,7 @@ No external setup is part of the current planning task. Later phases require the
 
 1. Create the GitHub repository and choose public or private visibility.
 2. Confirm no payment method or paid Actions usage is enabled; configure usage notifications or a zero-spend stopping budget where GitHub exposes that control.
-3. Create one Supabase Free project in Phase 2 and record its public URL/publishable key locally.
+3. If separately authorized in a later deployment task, create one Supabase Free project and record its public URL/publishable key locally.
 4. Configure server-only Supabase credentials only in local/Vercel secret settings, never in Git.
 5. Create/link a Vercel Hobby project in Phase 5 without starting a Pro trial or adding payment details.
 6. Configure production environment variables and verify that only intentionally public values use the `VITE_*` prefix.
@@ -347,4 +353,4 @@ Version 1 must not claim:
 
 ## 14. Approval gate
 
-Phase 1 is approved for local implementation. Do not initialize external services, deploy, push, or begin Phase 2. After implementing and verifying Phase 1, update progress documentation and stop at the phase boundary. Phases 2–5 each require separate explicit approval.
+Phases 1 and 2 were approved for local implementation. Do not initialize hosted services, deploy, push, or begin Phase 3. Phases 3–5 each require separate explicit approval.

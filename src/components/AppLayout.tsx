@@ -8,6 +8,8 @@ const destinations = [
   { to: '/', label: 'Home' },
   { to: '/tutor', label: 'Tutor demo' },
   { to: '/dashboard', label: 'Dashboard' },
+  { to: '/drafts', label: 'Drafts' },
+  { to: '/account', label: 'Account' },
 ];
 
 function NavigationLinks({ onNavigate }: { onNavigate?: () => void }) {

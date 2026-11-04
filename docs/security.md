@@ -1,22 +1,24 @@
 # Security Notes
 
-## Phase 1 attack surface
+## Phase 2 attack surface
 
-Phase 1 has no credentials, server APIs, database, authentication, user records, or code execution. The public app displays local static data and stores interaction state only in memory.
+Public demo routes remain static and credential-free. Optional account routes use Supabase Auth and the Data API. Browser code receives only the public URL and publishable key; PostgreSQL grants, constraints, and RLS are the authority for private drafts.
 
 ## Enforced exclusions
 
 - No OpenAI or other model SDK.
-- No environment secrets.
+- No service-role or server secret in browser code.
 - No fetch/XHR request in the tutor demo; component and browser tests enforce this behavior.
 - No `eval`, `new Function`, worker-based execution, subprocess, or third-party runner.
 - No raw HTML or model-generated Markdown rendering.
-- No saved drafts, authoritative scores, or claims of verified completion.
+- Saved drafts are labeled “Not executed or verified.”
+- Separate SELECT, INSERT, UPDATE, and DELETE policies bind `auth.uid()` to `user_id`.
+- Request generations prevent a late response from a previous account repopulating private state.
 
 ## Environment files
 
-`.env`, `.env.*`, and `*.local` are ignored. `.env.example` is the only exception and contains no secret or required value.
+`.env`, `.env.*`, and `*.local` are ignored. `.env.example` contains names and warnings only. `VITE_` values are public; a service-role key must never use that prefix.
 
 ## Later phases
 
-Authentication, persistence, server validation, private quiz answers, explicit grants, RLS, ownership tests, and deletion behavior belong to Phases 2–4. Their presence in the project plan is not evidence that they are implemented.
+Private quiz answers, authoritative scores, recommendations, live AI, and code execution remain unimplemented future or excluded work.

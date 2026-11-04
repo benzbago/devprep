@@ -21,7 +21,9 @@ export default tseslint.config(
       ecmaVersion: 2023,
       globals: { ...globals.browser, ...globals.node },
       parserOptions: {
-        projectService: true,
+        projectService: {
+          allowDefaultProject: ['scripts/*.mjs'],
+        },
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -38,6 +40,13 @@ export default tseslint.config(
     files: ['**/*.test.{ts,tsx}', 'e2e/**/*.ts'],
     rules: {
       '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+    },
+  },
+  {
+    files: ['scripts/*.mjs'],
+    rules: {
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
     },

@@ -1,18 +1,23 @@
-# Phase 1 Architecture
+# Phase 2 Architecture
 
 ## Runtime shape
 
-Phase 1 is a static client-side React application. Vite compiles TypeScript, React Router maps browser routes, Tailwind generates the visual system, and all tutor content is bundled as immutable TypeScript data.
+Public routes remain a static client-side React application. Optional account routes add a Supabase browser client whose requests are authorized by PostgreSQL RLS.
 
 ```text
 Browser
   ├─ React application shell
   ├─ React Router routes
   ├─ bundled challenge and tutor demo records
-  └─ in-memory interaction state
+  ├─ in-memory public interaction state
+  └─ optional Supabase Auth session and owner-scoped draft requests
+
+Local Supabase
+  ├─ Auth users and sessions
+  └─ PostgreSQL code_drafts table with explicit grants and RLS
 ```
 
-There is no API, database, authentication service, model provider, streaming connection, persistence layer, or code runner in Phase 1.
+There is no custom server API, model provider, streaming connection, quiz service, or code runner. Normal draft CRUD goes directly through Supabase's Data API because RLS is the enforcement boundary.
 
 ## Key boundaries
 
@@ -22,6 +27,10 @@ There is no API, database, authentication service, model provider, streaming con
 - `src/features/tutor-demo/demo-content.ts` is the sole curated tutor data source.
 - Tutor state is ephemeral React state. Reloading resets it.
 - The dashboard is explicitly sample content and does not read tutor state.
+- `src/features/auth/` owns optional session state and configuration fallback.
+- `src/features/drafts/` owns draft validation, persistence, and stale-request protection.
+- Draft text is capped at 50,000 characters in both client validation and PostgreSQL constraints.
+- Public routes do not require Supabase configuration.
 
 ## Demo contract
 

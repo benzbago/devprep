@@ -6,6 +6,8 @@ import { DashboardPage } from '../features/dashboard/DashboardPage';
 import { LandingPage } from '../features/landing/LandingPage';
 import { NotFoundPage } from '../features/not-found/NotFoundPage';
 import { TutorPage } from '../features/tutor-demo/TutorPage';
+import { AuthPage } from '../features/auth/AuthPage';
+import { DraftsPage } from '../features/drafts/DraftsPage';
 
 export const appRoutes: RouteObject[] = [
   {
@@ -15,6 +17,8 @@ export const appRoutes: RouteObject[] = [
       { path: 'tutor', element: <TutorPage /> },
       { path: 'challenges/:challengeId', element: <ChallengePage /> },
       { path: 'dashboard', element: <DashboardPage /> },
+      { path: 'account', element: <AuthPage /> },
+      { path: 'drafts', element: <DraftsPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },
