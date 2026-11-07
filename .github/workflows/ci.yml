@@ -78,5 +78,13 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
+      - name: Run real grading handler integration
+        run: npm run test:integration:quiz
+
       - name: Run authenticated persistence test
         run: npm run test:e2e:auth
+
+      - name: Run authenticated quiz persistence test
+        env:
+          DEVPREP_LOCAL_API: '1'
+        run: npm run test:e2e:quiz

@@ -22,6 +22,14 @@ describe('AppLayout', () => {
       'href',
       '/tutor',
     );
+    expect(screen.getByRole('link', { name: /^quizzes$/i })).toHaveAttribute(
+      'href',
+      '/quizzes',
+    );
+    expect(screen.getByRole('link', { name: /sample quiz/i })).toHaveAttribute(
+      'href',
+      '/sample-quiz',
+    );
     expect(screen.getByRole('main')).toHaveAttribute('id', 'main-content');
   });
 

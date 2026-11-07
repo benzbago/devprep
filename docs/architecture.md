@@ -1,41 +1,48 @@
-# Phase 2 Architecture
+# Phase 3 Architecture
 
 ## Runtime shape
 
-Public routes remain a static client-side React application. Optional account routes add a Supabase browser client whose requests are authorized by PostgreSQL RLS.
-
 ```text
-Browser
-  ├─ React application shell
-  ├─ React Router routes
-  ├─ bundled challenge and tutor demo records
-  ├─ in-memory public interaction state
-  └─ optional Supabase Auth session and owner-scoped draft requests
-
-Local Supabase
-  ├─ Auth users and sessions
-  └─ PostgreSQL code_drafts table with explicit grants and RLS
+Browser (untrusted)
+  ├─ Public tutor and inspectable sample quiz: bundled, local-only
+  ├─ Supabase Auth session and public quiz prompts/options
+  ├─ Owner-only draft and attempt reads through RLS
+  └─ Authenticated quiz selections sent to /api/quizzes/grade
+                         │
+                         ▼
+Vercel Web Handler (trusted server boundary)
+  ├─ 16 KiB body limit and shared Zod validation
+  ├─ Supabase Auth getUser(access-token) verification
+  └─ server-secret call to service-role-only grading RPC
+                         │
+                         ▼
+Supabase PostgreSQL
+  ├─ published quiz versions and prompts/options
+  ├─ private answer keys with no browser-role access
+  ├─ atomic grading, persistent rate limit, and idempotency lock
+  └─ immutable, owner-readable authoritative attempts
 ```
 
-There is no custom server API, model provider, streaming connection, quiz service, or code runner. Normal draft CRUD goes directly through Supabase's Data API because RLS is the enforcement boundary.
+Draft CRUD still uses the Supabase browser client directly because RLS is its complete enforcement boundary. Quiz grading uses a Function because browsers must not receive answer keys or assign scores.
 
-## Key boundaries
+## Quiz integrity
 
-- `src/app/` owns routing and composition.
-- `src/components/` owns reusable shell elements.
-- `src/features/` keeps each page and its behavior together.
-- `src/features/tutor-demo/demo-content.ts` is the sole curated tutor data source.
-- Tutor state is ephemeral React state. Reloading resets it.
-- The dashboard is explicitly sample content and does not read tutor state.
-- `src/features/auth/` owns optional session state and configuration fallback.
-- `src/features/drafts/` owns draft validation, persistence, and stale-request protection.
-- Draft text is capped at 50,000 characters in both client validation and PostgreSQL constraints.
-- Public routes do not require Supabase configuration.
+- `(quiz_id, version)` identifies an immutable published quiz. Questions and answer keys cannot be updated or deleted after publication.
+- Attempts retain the exact quiz version, selected answers, counts, percentage, and submission time, so history remains interpretable after later versions are added.
+- The browser can read published prompts/options but no correct-answer column exists in exposed tables.
+- `private.quiz_answer_keys` is outside configured Data API schemas. `PUBLIC`, `anon`, and `authenticated` receive no schema or table privileges.
+- `public.grade_quiz_attempt` is `SECURITY INVOKER`, executable only by `service_role`, and reads private answers using explicit server-role grants.
+- A transaction-scoped advisory lock serializes submissions per user. `(user_id, submission_id)` is also unique. Concurrent identical retries return one stored attempt; changed content with the same UUID fails.
+- New attempts are limited persistently to five per user in a rolling minute. Exact retries return before the limit check.
 
-## Demo contract
+## Public and private progress
 
-The tutor accepts selection only from visible curated controls. It returns the exact matching local response synchronously. The “different question” control explains that live AI is unavailable; it does not inspect or classify user text. No artificial streaming or delay is used.
+`/sample-quiz` is inspectable bundled content, makes no API call, and stores nothing. Signed-out `/dashboard` figures are permanently labeled sample content.
 
-## Future routing
+Signed-in dashboard figures come only from owner-scoped `quiz_attempts` rows: total attempts, latest score, best score, and versioned history. Recommendations remain outside Phase 3.
 
-Vercel deployment and SPA rewrites are deferred to Phase 5. Before deployment, routing must preserve `/api/*` for future Functions and use the SPA fallback only for non-API paths. Current Playwright tests verify direct client routes through Vite preview, not Vercel production rewrites.
+## Local and deployed routing
+
+Local authenticated Playwright uses an opt-in Vite middleware adapter that passes `/api/quizzes/grade` requests to the exact Web handler. Direct handler/database tests also invoke that handler with Web `Request` objects.
+
+These checks prove handler behavior and local persistence, not Vercel routing or SPA rewrites. Deployed `/api/*` precedence and production routing remain pending until an explicitly authorized deployment verification.

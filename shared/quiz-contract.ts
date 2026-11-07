@@ -7,7 +7,10 @@ const quizAnswerSchema = z.object({
 
 export const quizSubmissionSchema = z
   .object({
-    quizId: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(80),
+    quizId: z
+      .string()
+      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+      .max(80),
     quizVersion: z.number().int().positive().max(2_147_483_647),
     submissionId: z.uuid(),
     answers: z.array(quizAnswerSchema).min(1).max(20),

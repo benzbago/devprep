@@ -81,3 +81,24 @@ test('makes no external request during the predefined demo journey', async ({ pa
   await page.getByRole('button', { name: /i have a different question/i }).click();
   expect(externalRequests).toEqual([]);
 });
+
+test('grades the public sample without credentials or network calls', async ({
+  page,
+}) => {
+  const apiRequests: string[] = [];
+  page.on('request', (request) => {
+    if (request.url().includes('/api/') || request.url().includes('supabase')) {
+      apiRequests.push(request.url());
+    }
+  });
+
+  await page.goto('/sample-quiz');
+  await expect(
+    page.getByText(/public sample.*answers may be inspectable/i),
+  ).toBeVisible();
+  await page.getByRole('radio', { name: 'number' }).click();
+  await page.getByRole('radio', { name: 'undefined' }).click();
+  await page.getByRole('button', { name: /check sample answers/i }).click();
+  await expect(page.getByText('100%')).toBeVisible();
+  expect(apiRequests).toEqual([]);
+});

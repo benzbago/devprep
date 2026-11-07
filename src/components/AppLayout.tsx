@@ -7,6 +7,8 @@ import { BrandMark } from './BrandMark';
 const destinations = [
   { to: '/', label: 'Home' },
   { to: '/tutor', label: 'Tutor demo' },
+  { to: '/sample-quiz', label: 'Sample quiz' },
+  { to: '/quizzes', label: 'Quizzes' },
   { to: '/dashboard', label: 'Dashboard' },
   { to: '/drafts', label: 'Drafts' },
   { to: '/account', label: 'Account' },

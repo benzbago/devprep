@@ -87,7 +87,7 @@
 - Function responses: `401` missing/invalid/expired session, `405` wrong method, `415` wrong content type, `413` body too large, `400` malformed input, `409` conflicting reuse of an idempotency key or stale quiz version, `429` exceeded authenticated submission window if the database limiter is enabled, and generic `500/503` without database details.
 - Do not log bearer tokens, answer selections, email addresses, answer keys, or server secrets.
 - Send `Cache-Control: no-store` on grading and private-attempt responses.
-- Initial duplicate protection is database idempotency. Add a small database-backed per-user submission window only if the approved implementation requires public abuse protection; do not add Redis or any paid limiter.
+- Enforce a persistent five-new-attempts-per-user rolling-minute limit inside the atomic PostgreSQL grading function. Exact idempotent retries return the existing attempt before the limiter and do not consume another slot. Do not add process-local counters, Redis, or a paid limiter.
 
 ## How grading runs locally and on Vercel
 
@@ -122,8 +122,9 @@
 2. Add public catalog, private answer-key, and immutable attempt tables with explicit grants and RLS.
 3. Add a small curated authenticated JavaScript quiz and answer rows in the migration, keeping answers out of frontend source.
 4. Add the service-role-only atomic grading function and idempotency rules.
-5. Reset only the confirmed disposable local stack, run `npm run test:db`, and require every assertion to execute and pass.
-6. Temporarily break one authorization assertion, prove the suite exits non-zero, restore it, and rerun green.
+5. Run concurrent identical submissions and prove they return the same attempt ID while storing one row; changed content with the same UUID must fail.
+6. Reset only the confirmed disposable local stack, run `npm run test:db`, and require every assertion to execute and pass.
+7. Temporarily break one authorization assertion, prove the suite exits non-zero, restore it, and rerun green.
 
 ### Task 3: Implement the server grading boundary
 

@@ -1,6 +1,6 @@
-# Phase 2 local setup
+# Phase 3 local setup
 
-Public demo routes require only Node.js 24+ and npm 11+. Supabase is optional unless you are developing or testing accounts and drafts.
+Public demo routes require only Node.js 24+ and npm 11+. Supabase is optional unless you are developing or testing accounts, drafts, or authenticated quizzes.
 
 ## Prerequisites for account features
 
@@ -52,7 +52,20 @@ VITE_SUPABASE_PUBLISHABLE_KEY=<local publishable or anon key>
 
 Do not put a service-role key in any `VITE_` variable. Vite exposes all `VITE_` values to the browser.
 
-Run the app with `npm run dev`. Local confirmation emails are captured by Mailpit at the URL reported by `npx supabase status`; they are not sent externally.
+For interactive authenticated quiz grading, provide the local server credential only to
+the Vite process and enable the local API adapter:
+
+```powershell
+$localStatus = npx supabase status -o json | ConvertFrom-Json
+$env:SUPABASE_SERVICE_ROLE_KEY = $localStatus.SERVICE_ROLE_KEY
+$env:DEVPREP_LOCAL_API = '1'
+npm run dev
+```
+
+Clear both variables when the development server stops. Without the adapter, public
+pages and client-side account/draft features still work, but `/api/quizzes/grade` is not
+served by Vite. Local confirmation emails are captured by Mailpit at the URL reported
+by `npx supabase status`; they are not sent externally.
 
 ## Database and authenticated browser tests
 
@@ -72,9 +85,13 @@ $env:VITE_SUPABASE_URL = $localStatus.API_URL
 $env:VITE_SUPABASE_PUBLISHABLE_KEY = $localStatus.PUBLISHABLE_KEY
 $env:SUPABASE_SERVICE_ROLE_KEY = $localStatus.SERVICE_ROLE_KEY
 npm run test:e2e:auth
+npm run test:integration:quiz
+$env:DEVPREP_LOCAL_API = '1'
+npm run test:e2e:quiz
+Remove-Item Env:DEVPREP_LOCAL_API -ErrorAction SilentlyContinue
 ```
 
-The dedicated command now fails before Playwright if any required value is absent, builds the app with the local public values, and then executes the authenticated Chromium test. A successful result must say `1 passed`; `1 skipped` is not verification.
+The dedicated commands fail before Vitest or Playwright if any required value is absent. Successful authenticated browser results must say `1 passed`; a skipped-only run is not verification. The quiz browser test uses an opt-in local Vite adapter around the real Web handler. It verifies local behavior but not deployed Vercel routing.
 
 Clear all test values afterward:
 
@@ -82,9 +99,14 @@ Clear all test values afterward:
 Remove-Item Env:VITE_SUPABASE_URL -ErrorAction SilentlyContinue
 Remove-Item Env:VITE_SUPABASE_PUBLISHABLE_KEY -ErrorAction SilentlyContinue
 Remove-Item Env:SUPABASE_SERVICE_ROLE_KEY -ErrorAction SilentlyContinue
+Remove-Item Env:SUPABASE_URL -ErrorAction SilentlyContinue
+Remove-Item Env:SUPABASE_PUBLISHABLE_KEY -ErrorAction SilentlyContinue
+Remove-Item Env:SUPABASE_SECRET_KEY -ErrorAction SilentlyContinue
 ```
 
 Never commit these values or use a hosted service-role key for local tests.
+
+For the grading Function, local tests accept `SUPABASE_SERVICE_ROLE_KEY` as the server credential. A future Vercel environment should use the server-only `SUPABASE_SECRET_KEY` name. Neither value may be prefixed with `VITE_`.
 
 ## Prove the database suite fails on an assertion
 

@@ -15,5 +15,13 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true
   },
-  "include": ["vite.config.ts", "playwright.config.ts", "e2e/**/*.ts"]
+  "include": [
+    "vite.config.ts",
+    "playwright.config.ts",
+    "playwright.quiz.config.ts",
+    "vitest.integration.config.ts",
+    "e2e/**/*.ts",
+    "api/**/*.ts",
+    "shared/**/*.ts"
+  ]
 }

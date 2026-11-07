@@ -1,6 +1,6 @@
 # Data deletion
 
-DevPrep stores only the email needed by Supabase Auth and user-owned code drafts.
+DevPrep stores only the email needed by Supabase Auth, user-owned code drafts, and authoritative quiz attempts.
 
 ## Delete drafts
 
@@ -14,6 +14,8 @@ For local development, remove the test user through local Supabase Studio. For a
 
 1. Verify the requester's identity outside the public client.
 2. Delete the user from Supabase Dashboard → Authentication → Users.
-3. Confirm the user's `code_drafts` rows were removed by the `ON DELETE CASCADE` foreign key.
+3. Confirm the user's `code_drafts` and `quiz_attempts` rows were removed by their `ON DELETE CASCADE` foreign keys.
+
+The local pgTAP suites verify both cascades against real PostgreSQL. Quiz attempts are intentionally immutable to browser users; account deletion is their deletion path.
 
 Never send a service-role key to a user or ask them to paste credentials into chat. Database space may not be reclaimed immediately because PostgreSQL vacuuming is asynchronous.

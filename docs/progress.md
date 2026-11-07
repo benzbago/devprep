@@ -2,7 +2,7 @@
 
 ## Current status
 
-Phase 1 is complete. Phase 2 implementation and local database/authenticated persistence verification are complete. No hosted service was provisioned, no payment method was added, and nothing was pushed or deployed.
+Phases 1–3 are implemented and verified locally. Phase 3 is ready for its local checkpoint. GitHub CI and deployed Vercel routing have not been verified. No hosted service was provisioned, no payment method was added, and nothing was pushed or deployed.
 
 ## Phase 1 delivered
 
@@ -27,6 +27,50 @@ Phase 1 is complete. Phase 2 implementation and local database/authenticated per
 - Versioned migration, pgTAP ownership tests, and a local-Supabase authenticated Playwright persistence test.
 - Local Mailpit, environment, hosted-email limitation, and data-deletion documentation.
 - A separate CI job that starts local Supabase without hosted credentials.
+
+## Phase 3 implemented and verified locally
+
+- Versioned published JavaScript quizzes with immutable questions and answer keys.
+- Private answer storage, browser-read-only prompts/options, explicit grants, and owner-only attempt RLS.
+- A service-role-only atomic grading function with complete membership/option validation, per-user advisory locking, idempotency, and a persistent five-new-attempts-per-minute limit.
+- A 16 KiB Zod-validated Web handler that verifies Supabase access tokens and never accepts client scores or user IDs.
+- Authenticated quiz catalog/completion UI and immutable attempt history.
+- Signed-in dashboard figures derived only from real authoritative attempts; signed-out sample figures remain clearly labeled.
+- A separate inspectable public sample quiz that grades locally and stores nothing.
+- Real-handler concurrency/integration and authenticated Playwright suites that fail fast rather than skip when local values are absent.
+- Account deletion cascade coverage for both drafts and quiz attempts.
+
+## Phase 3 verification record — 2026-11-07
+
+Passed locally without Supabase:
+
+- `npm run test:run`: 15 files and 66 tests passed.
+- `npm run typecheck`: passed with no diagnostics.
+- `npm run lint`: passed with zero warnings or errors.
+- `npm run build`: passed; Vite transformed 2,220 modules. The existing non-failing chunk warning remains, now at 661.74 kB.
+- Public Playwright smoke verification: 14/14 passed across desktop and mobile Chromium, including the zero-network public sample quiz. The normal Windows-managed preview again hung after assertions, so the counted pass used the documented explicitly managed preview process and exited 0.
+- `npm audit --omit=dev`: passed with zero production vulnerabilities.
+- Production browser-asset scan: no `quiz_answer_keys`, grading RPC name, server credential names, or private grading identifiers were found.
+- Credential-shape scan: no committed secret/key values were found.
+
+Passed locally with Supabase on 2026-11-07:
+
+- Docker Client and Server `29.9.2` were reachable using Linux containers.
+- Before reset, the target was verified as the unlinked `devprep-local` stack at `127.0.0.1:54322`, backed by container `supabase_db_devprep-local`. It contained only migration `20261104000100`, with `auth.users=0`, `public.code_drafts=0`, and no Phase 3 attempt table, so there was no data to preserve.
+- `npx supabase db reset` explicitly targeted the local stack and applied migrations `20261104000100` and `20261107000100`.
+- `npm run test:db`: passed 57/57 real pgTAP assertions: 16 draft/RLS assertions and all 41 quiz/grading assertions.
+- Mutation check: changing the expected anonymous quiz grant count from 0 to 1 made quiz assertion 12 fail and the suite exit 1. The temporary change was restored, then all 57 assertions passed again.
+- `npm run test:integration:quiz`: executed 3/3 real handler/database tests. It covered invalid-token rejection, two concurrent identical requests producing one consistent attempt, conflicting submission-UUID reuse returning 409, the persistent five-new-attempts-per-minute limit, and an exact retry succeeding after the limit.
+- `npm run test:e2e:auth`: executed rather than skipped and passed 1/1 Chromium draft-persistence test.
+- `npm run test:e2e:quiz`: initially exposed a test race because it navigated before sign-in state committed. The test now waits for the authenticated drafts page; the rerun executed rather than skipped and passed 1/1 Chromium quiz test, including authoritative grading and dashboard persistence across reload.
+- Post-test cleanup was confirmed directly: `auth.users=0`, `public.code_drafts=0`, and `public.quiz_attempts=0`. The expected immutable seed remains: one quiz version and three private answer rows.
+- Closeout review expanded published-version coverage from 41 to 45 quiz assertions. Inserts and moves into published question/answer sets are now rejected; the final database suite passed 61/61 assertions (16 draft/RLS plus 45 quiz/grading).
+- Closeout review also added a lost-response regression: an unchanged retry preserves its submission identifier, while editing answers or choosing “Start a new attempt” abandons it and generates a new identifier instead of trapping the user in an idempotency conflict.
+
+Not locally provable:
+
+- GitHub Actions has not run because nothing was pushed.
+- Deployed Vercel `/api/*` routing has not run because deployment was not authorized. Direct handler integration and the opt-in local Vite adapter do not prove deployed routing.
 
 ## Verification record
 
@@ -83,7 +127,7 @@ Phase 2 database verification completed on 2026-11-04:
 
 ## Known limitations
 
-- The dashboard is sample content only and no activity is persisted.
+- Signed-out dashboard figures are sample content; signed-in figures require verified authoritative attempts.
 - Tutor content is intentionally finite and cannot analyze arbitrary questions or code.
 - Vercel SPA/API rewrite behavior is not configured or verified until deployment preparation in Phase 5.
 - GitHub Actions has not run because no GitHub repository was created or pushed.
@@ -93,4 +137,4 @@ Phase 2 database verification completed on 2026-11-04:
 
 ## Next authorized step
 
-Phase 2 is stopped at its verified local boundary. Phase 3 requires separate explicit approval before adding quizzes, grading, scores, progress, or recommendations.
+Phase 3 implementation and local verification are complete. Do not begin recommendations or Phase 4 without separate explicit approval.
