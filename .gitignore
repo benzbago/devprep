@@ -11,3 +11,4 @@ supabase/.branches/
 *.local
 .DS_Store
 *.log
+.superpowers/
