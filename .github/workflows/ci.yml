@@ -46,6 +46,9 @@ jobs:
       - name: Run browser smoke tests
         run: npm run test:e2e
 
+      - name: Run public accessibility tests
+        run: npm run test:e2e:a11y
+
   database-and-auth-integration:
     runs-on: ubuntu-latest
     timeout-minutes: 25

@@ -3,12 +3,19 @@ import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AuthContext, type AuthState } from '../auth/auth-context';
-import { listAttempts } from '../quizzes/attempt-service';
+import { listAttempts, listRecommendationAttempts } from '../quizzes/attempt-service';
+import { listQuizVersions } from '../quizzes/quiz-service';
 import { DashboardPage } from './DashboardPage';
 
 vi.mock('../quizzes/attempt-service', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../quizzes/attempt-service')>()),
   listAttempts: vi.fn(),
+  listRecommendationAttempts: vi.fn(),
+}));
+
+vi.mock('../quizzes/quiz-service', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../quizzes/quiz-service')>()),
+  listQuizVersions: vi.fn(),
 }));
 
 const signedOut: AuthState = {
@@ -29,7 +36,13 @@ function renderDashboard(auth: AuthState) {
 }
 
 describe('DashboardPage', () => {
-  beforeEach(() => vi.mocked(listAttempts).mockReset());
+  beforeEach(() => {
+    vi.mocked(listAttempts).mockReset();
+    vi.mocked(listRecommendationAttempts).mockReset();
+    vi.mocked(listQuizVersions).mockReset();
+    vi.mocked(listRecommendationAttempts).mockResolvedValue([]);
+    vi.mocked(listQuizVersions).mockResolvedValue([]);
+  });
 
   it('clearly labels signed-out figures as sample content', () => {
     renderDashboard(signedOut);
@@ -39,6 +52,8 @@ describe('DashboardPage', () => {
     ).toBeVisible();
     expect(screen.getByText(/sample content only/i)).toBeVisible();
     expect(listAttempts).not.toHaveBeenCalled();
+    expect(listRecommendationAttempts).not.toHaveBeenCalled();
+    expect(listQuizVersions).not.toHaveBeenCalled();
   });
 
   it('shows only real figures derived from signed-in attempts', async () => {
@@ -83,5 +98,88 @@ describe('DashboardPage', () => {
     });
 
     expect(await screen.findByText(/no graded attempts yet/i)).toBeVisible();
+  });
+
+  it('derives signed-in recommendations from the bounded evidence query', async () => {
+    vi.mocked(listAttempts).mockResolvedValue([]);
+    vi.mocked(listRecommendationAttempts).mockResolvedValue([
+      {
+        id: 'attempt-1',
+        quizId: 'javascript-foundations',
+        quizVersion: 1,
+        correctCount: 2,
+        questionCount: 3,
+        scorePercent: 67,
+        submittedAt: '2026-11-07T09:00:00Z',
+      },
+    ]);
+    vi.mocked(listQuizVersions).mockResolvedValue([
+      {
+        id: 'javascript-foundations',
+        version: 1,
+        title: 'JavaScript foundations',
+        description: 'Fundamentals',
+        topic: 'JavaScript fundamentals',
+        questionCount: 3,
+      },
+    ]);
+    renderDashboard({
+      ...signedOut,
+      status: 'signedIn',
+      user: { id: 'user-one' } as AuthState['user'],
+    });
+
+    expect(await screen.findByText('Review next')).toBeVisible();
+    expect(screen.getByText(/66\.67%/)).toBeVisible();
+    expect(listRecommendationAttempts).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects a stale recommendation response after an account change', async () => {
+    let resolveFirst!: (
+      value: Awaited<ReturnType<typeof listRecommendationAttempts>>,
+    ) => void;
+    vi.mocked(listAttempts).mockResolvedValue([]);
+    vi.mocked(listRecommendationAttempts)
+      .mockReturnValueOnce(new Promise((resolve) => (resolveFirst = resolve)))
+      .mockResolvedValueOnce([]);
+    vi.mocked(listQuizVersions).mockResolvedValue([
+      {
+        id: 'javascript-foundations',
+        version: 1,
+        title: 'JavaScript foundations',
+        description: 'Fundamentals',
+        topic: 'JavaScript fundamentals',
+        questionCount: 3,
+      },
+    ]);
+    const first = {
+      ...signedOut,
+      status: 'signedIn' as const,
+      user: { id: 'user-one' } as AuthState['user'],
+    };
+    const { rerender } = renderDashboard(first);
+    rerender(
+      <MemoryRouter>
+        <AuthContext.Provider
+          value={{ ...first, user: { id: 'user-two' } as AuthState['user'] }}
+        >
+          <DashboardPage />
+        </AuthContext.Provider>
+      </MemoryRouter>,
+    );
+    resolveFirst([
+      {
+        id: 'stale',
+        quizId: 'javascript-foundations',
+        quizVersion: 1,
+        correctCount: 0,
+        questionCount: 3,
+        scorePercent: 0,
+        submittedAt: '2026-11-07T09:00:00Z',
+      },
+    ]);
+
+    expect(await screen.findByText('Start here')).toBeVisible();
+    expect(screen.queryByText('Review next')).not.toBeInTheDocument();
   });
 });

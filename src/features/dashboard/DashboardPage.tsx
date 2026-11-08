@@ -3,7 +3,17 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { useAuth } from '../auth/auth-context';
-import { listAttempts, type QuizAttempt } from '../quizzes/attempt-service';
+import {
+  listAttempts,
+  listRecommendationAttempts,
+  type QuizAttempt,
+} from '../quizzes/attempt-service';
+import { listQuizVersions } from '../quizzes/quiz-service';
+import { RecommendationPanel } from '../recommendations/RecommendationPanel';
+import {
+  deriveStudyRecommendations,
+  type RecommendationResult,
+} from '../recommendations/recommendation-engine';
 
 const sampleStats = [
   { label: 'Sample quizzes', value: '3', icon: BookOpen },
@@ -25,6 +35,10 @@ export function DashboardPage() {
 function AuthenticatedDashboard() {
   const [attempts, setAttempts] = useState<QuizAttempt[]>([]);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [recommendation, setRecommendation] = useState<RecommendationResult>();
+  const [recommendationStatus, setRecommendationStatus] = useState<
+    'loading' | 'ready' | 'error'
+  >('loading');
 
   useEffect(() => {
     let active = true;
@@ -36,6 +50,15 @@ function AuthenticatedDashboard() {
       })
       .catch(() => {
         if (active) setStatus('error');
+      });
+    void Promise.all([listRecommendationAttempts(), listQuizVersions()])
+      .then(([evidence, quizzes]) => {
+        if (!active) return;
+        setRecommendation(deriveStudyRecommendations(evidence, quizzes));
+        setRecommendationStatus('ready');
+      })
+      .catch(() => {
+        if (active) setRecommendationStatus('error');
       });
     return () => {
       active = false;
@@ -83,7 +106,7 @@ function AuthenticatedDashboard() {
             <Stat label="Best score" value={`${best}%`} />
             <Stat label="Latest score" value={`${latest?.scorePercent ?? 0}%`} />
           </div>
-          <p className="mt-4 text-sm text-slate-500">
+          <p className="mt-4 text-sm text-slate-400">
             Published quiz versions attempted: {uniqueQuizzes}
           </p>
           <h2 className="mt-10 text-xl font-semibold text-white">Attempt history</h2>
@@ -99,6 +122,20 @@ function AuthenticatedDashboard() {
             ))}
           </ul>
         </>
+      ) : null}
+      {recommendationStatus === 'loading' ? (
+        <p aria-live="polite" className="mt-10 text-slate-400">
+          Loading study recommendations…
+        </p>
+      ) : null}
+      {recommendationStatus === 'error' ? (
+        <p role="alert" className="mt-10 text-red-200">
+          Study recommendations could not be loaded. Your attempt history is still
+          available above.
+        </p>
+      ) : null}
+      {recommendationStatus === 'ready' && recommendation ? (
+        <RecommendationPanel result={recommendation} />
       ) : null}
     </section>
   );

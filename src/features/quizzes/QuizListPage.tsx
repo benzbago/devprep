@@ -72,7 +72,7 @@ function QuizCatalog() {
             <p className="text-sm text-violet-300">{quiz.topic}</p>
             <h2 className="mt-2 text-2xl font-semibold text-white">{quiz.title}</h2>
             <p className="mt-2 text-slate-400">{quiz.description}</p>
-            <p className="mt-3 text-sm text-slate-500">
+            <p className="mt-3 text-sm text-slate-400">
               {quiz.questionCount} questions · Version {quiz.version}
             </p>
             <Link

@@ -85,7 +85,7 @@ export function AppLayout() {
       <main className="relative z-10" id="main-content" tabIndex={-1}>
         <Outlet />
       </main>
-      <footer className="relative z-10 border-t border-white/8 px-5 py-8 text-center text-sm text-slate-500">
+      <footer className="relative z-10 border-t border-white/8 px-5 py-8 text-center text-sm text-slate-400">
         <p>Built as a zero-spend learning project. Demo content is predefined.</p>
       </footer>
     </div>

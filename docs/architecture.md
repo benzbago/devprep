@@ -1,4 +1,4 @@
-# Phase 3 Architecture
+# Phase 4 Architecture
 
 ## Runtime shape
 
@@ -39,7 +39,15 @@ Draft CRUD still uses the Supabase browser client directly because RLS is its co
 
 `/sample-quiz` is inspectable bundled content, makes no API call, and stores nothing. Signed-out `/dashboard` figures are permanently labeled sample content.
 
-Signed-in dashboard figures come only from owner-scoped `quiz_attempts` rows: total attempts, latest score, best score, and versioned history. Recommendations remain outside Phase 3.
+Signed-in dashboard figures come only from owner-scoped `quiz_attempts` rows: total attempts, latest score, best score, and versioned history. Those figures and the existing history query remain all-time.
+
+Phase 4 recommendations are derived in the browser from a separate owner-scoped evidence query and published quiz metadata. The evidence query orders by `submitted_at DESC, id ASC` and limits only recommendation evidence to 100 rows, making equal-timestamp cutoffs deterministic. The rule engine keeps the latest retake for each immutable quiz version, combines matched evidence by topic using exact `correct_count / question_count`, and applies unrounded boundaries:
+
+- below 70%: **Review next**;
+- 70% to below 85%: **Practice again**;
+- 85% or higher: no remediation; when every evidenced topic meets this boundary, show one weakest-topic **Keep it fresh** suggestion.
+
+The UI displays up to two decimal places, identifies one-version evidence as an early signal, explains when attempts cannot be matched to current metadata, and avoids broken links when no published quiz exists. Recommendations add no stored profile or inferred data and make no AI or external-service call.
 
 ## Local and deployed routing
 

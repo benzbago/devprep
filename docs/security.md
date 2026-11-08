@@ -30,6 +30,13 @@ Authenticated answer keys are absent from frontend modules, API responses, and p
 
 The repository is intended for a public portfolio, so committed SQL seed values remain visible to repository readers. The application protects answers from ordinary browser/API access; it does not claim secrecy from someone who can inspect repository history.
 
+## Phase 4 recommendation boundary
+
+- Recommendation inputs use the same owner-only attempt RLS as attempt history; no cross-user or client-assigned result is accepted.
+- The recommendation request is restarted for each authenticated user, and late responses are discarded after sign-out or account changes.
+- Signed-out sample quiz results remain local component state and never enter recommendation evidence.
+- Recommendations are deterministic client-side rules over already-authorized records. They require no new table, secret, API endpoint, model provider, or quota infrastructure.
+
 ## Still excluded
 
-Recommendations remain Phase 4 work. Live AI and code execution remain excluded from Version 1.
+Live AI and code execution remain excluded from Version 1.

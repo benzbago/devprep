@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import type { GradedAttempt } from '../../../shared/quiz-contract';
@@ -52,6 +52,7 @@ function QuizWorkspace({ quizId, quizVersion }: { quizId: string; quizVersion: n
   const [message, setMessage] = useState<string>();
   const [attempt, setAttempt] = useState<GradedAttempt>();
   const [submissionId, setSubmissionId] = useState<string>();
+  const resultHeadingRef = useRef<HTMLHeadingElement>(null);
 
   function startNewAttempt() {
     setAnswers({});
@@ -79,6 +80,10 @@ function QuizWorkspace({ quizId, quizVersion }: { quizId: string; quizVersion: n
       active = false;
     };
   }, [quizId, quizVersion]);
+
+  useEffect(() => {
+    if (attempt) resultHeadingRef.current?.focus();
+  }, [attempt]);
 
   async function grade() {
     const retryId = submissionId ?? crypto.randomUUID();
@@ -124,7 +129,7 @@ function QuizWorkspace({ quizId, quizVersion }: { quizId: string; quizVersion: n
       </h1>
       {message ? (
         <div className="mt-5 rounded-xl border border-red-300/20 bg-red-300/[0.06] p-4 text-red-100">
-          <p aria-live="polite">{message}</p>
+          <p role="alert">{message}</p>
           {submissionId ? (
             <button
               className="mt-3 rounded-lg border border-red-100/20 px-3 py-2 font-semibold"
@@ -138,7 +143,13 @@ function QuizWorkspace({ quizId, quizVersion }: { quizId: string; quizVersion: n
       ) : null}
       {attempt ? (
         <div className="mt-8 rounded-2xl border border-emerald-300/20 bg-emerald-300/[0.06] p-6">
-          <p className="text-5xl font-bold text-white">{attempt.scorePercent}%</p>
+          <h2
+            className="text-5xl font-bold text-white"
+            ref={resultHeadingRef}
+            tabIndex={-1}
+          >
+            {attempt.scorePercent}%
+          </h2>
           <p className="mt-2 text-emerald-100">
             {attempt.correctCount} of {attempt.questionCount} correct — authoritatively
             graded and saved.
@@ -196,7 +207,7 @@ function QuizWorkspace({ quizId, quizVersion }: { quizId: string; quizVersion: n
             </fieldset>
           ))}
           <button
-            className="rounded-xl bg-indigo-400 px-5 py-3 font-semibold text-slate-950 disabled:opacity-50"
+            className="rounded-xl bg-indigo-400 px-5 py-3 font-semibold text-slate-950 disabled:cursor-not-allowed disabled:bg-slate-500 disabled:text-slate-950"
             disabled={
               status === 'submitting' ||
               questions.length === 0 ||

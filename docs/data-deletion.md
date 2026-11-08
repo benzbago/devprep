@@ -2,6 +2,8 @@
 
 DevPrep stores only the email needed by Supabase Auth, user-owned code drafts, and authoritative quiz attempts.
 
+Study recommendations are computed when the signed-in dashboard loads. They are not stored as a profile or separate record, so deleting the underlying account and attempts also removes their evidence.
+
 ## Delete drafts
 
 Signed-in users can delete individual drafts from `/drafts`. RLS ensures the request can affect only the current user's records.

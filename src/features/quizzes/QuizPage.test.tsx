@@ -108,7 +108,10 @@ describe('authenticated quizzes', () => {
     await user.click(screen.getByRole('radio', { name: 'const' }));
     await user.click(screen.getByRole('button', { name: /submit quiz/i }));
 
-    expect(await screen.findByText('100%')).toBeVisible();
+    const resultHeading = await screen.findByRole('heading', { name: '100%' });
+    expect(resultHeading).toBeVisible();
+    expect(resultHeading).toHaveFocus();
+    expect(resultHeading.closest('[aria-live]')).toBeNull();
     expect(screen.getByText(/authoritatively graded/i)).toBeVisible();
     expect(submitQuiz).toHaveBeenCalledTimes(1);
   });
@@ -130,7 +133,7 @@ describe('authenticated quizzes', () => {
     await user.click(screen.getByRole('radio', { name: 'const' }));
     await user.click(screen.getByRole('button', { name: /submit quiz/i }));
 
-    expect(await screen.findByText(/session ended/i)).toBeVisible();
+    expect(await screen.findByRole('alert')).toHaveTextContent(/session ended/i);
     expect(screen.queryByText(/private/i)).not.toBeInTheDocument();
   });
 

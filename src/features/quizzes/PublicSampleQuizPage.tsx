@@ -1,10 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { publicSampleQuiz } from '../../data/public-demo/sample-quiz';
 
 export function PublicSampleQuizPage() {
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [score, setScore] = useState<number>();
+  const resultHeadingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    if (score !== undefined) resultHeadingRef.current?.focus();
+  }, [score]);
 
   function gradeSample() {
     const correct = publicSampleQuiz.questions.filter(
@@ -62,7 +67,7 @@ export function PublicSampleQuizPage() {
           </fieldset>
         ))}
         <button
-          className="rounded-xl bg-indigo-400 px-5 py-3 font-semibold text-slate-950 disabled:opacity-50"
+          className="rounded-xl bg-indigo-400 px-5 py-3 font-semibold text-slate-950 disabled:cursor-not-allowed disabled:bg-slate-500 disabled:text-slate-950"
           disabled={Object.keys(answers).length !== publicSampleQuiz.questions.length}
           type="submit"
         >
@@ -70,11 +75,14 @@ export function PublicSampleQuizPage() {
         </button>
       </form>
       {score !== undefined ? (
-        <div
-          aria-live="polite"
-          className="mt-8 rounded-2xl border border-amber-300/20 p-6"
-        >
-          <p className="text-4xl font-bold text-white">{score}%</p>
+        <div className="mt-8 rounded-2xl border border-amber-300/20 p-6">
+          <h2
+            className="text-4xl font-bold text-white"
+            ref={resultHeadingRef}
+            tabIndex={-1}
+          >
+            {score}%
+          </h2>
           <p className="mt-2 text-slate-400">
             Local sample result only. Nothing was saved.
           </p>

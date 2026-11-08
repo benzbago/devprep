@@ -1,6 +1,15 @@
-# Phase 3 local setup
+# Phase 4 local setup
 
 Public demo routes require only Node.js 24+ and npm 11+. Supabase is optional unless you are developing or testing accounts, drafts, or authenticated quizzes.
+
+Run the public automated accessibility checks after building:
+
+```powershell
+npm run build
+npm run test:e2e:a11y
+```
+
+The suite uses axe for serious/critical WCAG A/AA findings, checks 320-pixel layouts for horizontal overflow, and verifies the sample result receives keyboard focus without a second live-region announcement. Automated checks supplement rather than replace manual keyboard and screen-reader review.
 
 ## Prerequisites for account features
 

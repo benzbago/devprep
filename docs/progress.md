@@ -2,7 +2,7 @@
 
 ## Current status
 
-Phases 1–3 are implemented and verified locally. Phase 3 is ready for its local checkpoint. GitHub CI and deployed Vercel routing have not been verified. No hosted service was provisioned, no payment method was added, and nothing was pushed or deployed.
+Phases 1–3 have local checkpoint commits. Phase 4 is implemented and verified locally in the working tree, awaiting review before a checkpoint. GitHub CI and deployed Vercel routing have not been verified. No hosted service was provisioned, no payment method was added, and nothing was pushed or deployed.
 
 ## Phase 1 delivered
 
@@ -72,6 +72,47 @@ Not locally provable:
 - GitHub Actions has not run because nothing was pushed.
 - Deployed Vercel `/api/*` routing has not run because deployment was not authorized. Direct handler integration and the opt-in local Vite adapter do not prove deployed routing.
 
+## Phase 4 implemented locally
+
+- Deterministic, explainable study recommendations use only the signed-in user's owner-readable, server-graded quiz attempts and existing published topic metadata.
+- Recommendation evidence is independently bounded to 100 attempts ordered by `submitted_at DESC, id ASC`; all-time dashboard statistics and history are unchanged.
+- The latest retake of each immutable quiz version contributes exact count-based topic evidence. Unrounded scores below 70% produce **Review next**, scores from 70% to below 85% produce **Practice again**, and scores at or above 85% require no remediation.
+- Near-threshold results display up to two decimal places. One-version evidence is labeled as an early signal, unmatched attempts produce an incomplete-evidence notice, and an absent quiz catalog produces a useful non-linked empty state.
+- Public sample results remain local, credential-free, and excluded from signed-in recommendations. Account changes remount the private dashboard, clear prior recommendation state, and reject late responses.
+- Quiz result headings receive focus after keyboard submission. The focused heading is the only result feedback path, so the same score is not repeated by an `aria-live` region.
+- Axe-powered public and authenticated accessibility coverage, narrow-mobile overflow checks, and contrast fixes were added. The GitHub workflow now includes the public accessibility command.
+
+## Phase 4 verification record — 2026-11-07
+
+Passed locally:
+
+- `npm run format:check`: passed; all matched files use Prettier formatting.
+- `npm run lint`: passed with zero warnings or errors.
+- `npm run typecheck`: passed with no diagnostics.
+- `npm run test:run`: 17 files and 83 tests passed, including exact threshold, tie, retake, 100-attempt cutoff, incomplete metadata, no-catalog, account-change, and result-focus cases.
+- `npm run build`: passed; Vite transformed 2,223 modules. The existing non-failing bundle warning remains at 668.09 kB (192.64 kB gzip).
+- `npm run test:e2e`: 14/14 public desktop/mobile smoke tests passed using the documented explicitly managed preview process.
+- `npm run test:e2e:a11y`: 4/4 public desktop/mobile tests passed. Axe reported no serious or critical findings on the checked pages; the suite also verified 320-pixel horizontal fit, keyboard submission, result focus, and absence of a duplicate live region.
+- `npm run test:db`: 61/61 existing real pgTAP assertions passed. Phase 4 adds no migration or policy change.
+- `npm run test:integration:quiz`: 3/3 real handler/database tests passed, preserving token validation, atomic grading, persistent request limits, and concurrent idempotency.
+- `npm run test:e2e:auth`: executed rather than skipped and passed 1/1 authenticated draft-persistence test.
+- `npm run test:e2e:quiz`: executed rather than skipped and passed 1/1 authenticated quiz test, including authoritative persistence, the signed-in recommendation, result focus, and serious/critical axe checks on quiz and dashboard flows.
+- `npm audit --omit=dev`: zero production vulnerabilities.
+- `git diff --check`: passed; only Windows line-ending notices were printed.
+- Credential and prohibited-feature scans found no secret values, model client, code execution primitive, or execution UI. Empty example variables and CI extraction of a local ephemeral key are intentional.
+
+Automated accessibility results and manual checks are distinct:
+
+- Automated: the public axe suite and authenticated quiz axe checks above passed; component and browser tests verified focus movement and the single announcement path.
+- Manually performed: rendered desktop sample-quiz and 320-pixel dashboard screenshots were visually inspected for readable labels, card stacking, navigation layout, and obvious clipping/overflow; no visible defect was found.
+- Not manually performed: no screen-reader session or manual keyboard-only browser walkthrough was completed in this environment. These remain release-review checks rather than claimed passes.
+
+Non-blocking limitations and external checks:
+
+- Full `npm audit` reports 10 moderate development-only paths to the current `minimatch` advisory. npm offers only `--force` with a breaking ESLint downgrade, so no incompatible remediation was applied; production audit remains clean.
+- GitHub Actions execution is pending because nothing was pushed.
+- Deployed Vercel `/api/*` routing is pending because no deployment was authorized. Local handler and browser tests do not prove deployed routing.
+
 ## Verification record
 
 Final boundary checks run on 2026-11-04:
@@ -133,8 +174,8 @@ Phase 2 database verification completed on 2026-11-04:
 - GitHub Actions has not run because no GitHub repository was created or pushed.
 - Supabase CLI is pinned at `3.0.0`. `npm run test:e2e:auth` fails fast with exit code 1 when local values are absent, so a skipped-only run cannot be mistaken for verification.
 - Supabase's default hosted email sender is restricted to project-team addresses and is rate-limited. Public hosted signup configuration is deferred; no SMTP provider was added and email confirmation was not automatically disabled.
-- Full `npm audit` reports 12 moderate entries that all trace to one transitive development-only advisory: `minimatch@10.2.6` through ESLint and TypeScript-ESLint. The vulnerable range is `<11.0.1`, no patched 10.x release exists, and the direct tools currently declare `^10.2.x`. `npm audit --omit=dev` reports zero production vulnerabilities. An 11.x override would be outside the tools' declared compatibility range, while npm's forced remediation proposes breaking toolchain changes; neither was applied. Recheck when ESLint and TypeScript-ESLint adopt a patched compatible release.
+- Full `npm audit` currently reports 10 moderate entries that trace to one transitive development-only `minimatch` advisory through ESLint and TypeScript-ESLint. `npm audit --omit=dev` reports zero production vulnerabilities. npm's offered forced fix would make a breaking ESLint downgrade, so it was not applied. Recheck when the toolchain adopts a compatible patched dependency.
 
 ## Next authorized step
 
-Phase 3 implementation and local verification are complete. Do not begin recommendations or Phase 4 without separate explicit approval.
+Phase 4 implementation and local verification are complete in the uncommitted working tree. Stop for review; do not commit, push, deploy, provision resources, or begin Phase 5 without separate explicit approval.

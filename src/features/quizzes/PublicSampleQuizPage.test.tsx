@@ -20,7 +20,10 @@ describe('PublicSampleQuizPage', () => {
     await user.click(screen.getByRole('radio', { name: 'undefined' }));
     await user.click(screen.getByRole('button', { name: /check sample answers/i }));
 
-    expect(screen.getByText('100%')).toBeVisible();
+    const resultHeading = screen.getByRole('heading', { name: '100%' });
+    expect(resultHeading).toBeVisible();
+    expect(resultHeading).toHaveFocus();
+    expect(resultHeading.closest('[aria-live]')).toBeNull();
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 });

@@ -1,6 +1,6 @@
 # DevPrep AI Project Plan
 
-**Status:** Phases 1–3 implemented and verified locally; GitHub CI and deployed Vercel routing remain unverified
+**Status:** Phase 4 implemented and locally verified pending final review; GitHub CI and deployed Vercel routing remain unverified
 
 **Last updated:** 2026-11-07
 **Product description:** A developer learning platform with a clearly labeled AI tutor demo. Version 1 does not use a live AI model and does not execute code.
@@ -351,6 +351,16 @@ Version 1 must not claim:
 - Code execution, automated code verification, or execution-backed completion.
 - Unlimited, permanently free, or production-SLA hosting.
 
-## 14. Approval gate
+## 14. Phase 4 recommendation and accessibility rules
 
-Phases 1–3 were approved for local implementation. Do not initialize hosted services, deploy, push, or begin Phase 4. Phases 4–5 each require separate explicit approval.
+- Recommendations use only the signed-in user's owner-readable, server-graded attempts and existing published quiz topic metadata.
+- Scores are calculated from exact counts without rounding before classification: below 70% is **Review next**, 70% to below 85% is **Practice again**, and 85% or higher needs no remediation.
+- Recommendation evidence is limited to the newest 100 attempts ordered by submission time and attempt ID. Existing attempt history and dashboard totals remain all-time.
+- The latest retake of each immutable quiz version contributes evidence. Equal scores sort by older evidence first and then topic name for a stable result.
+- Missing metadata is reported as incomplete evidence rather than as an empty history. With no published quiz, the dashboard shows a non-linked empty state.
+- Quiz-result focus is moved to its heading after grading. The focused heading is the only result-announcement path, preventing duplicate live-region feedback.
+- Public sample quiz activity remains credential-free, local-only, and separate from signed-in recommendations.
+
+## 15. Approval gate
+
+Phases 1–4 were approved for local implementation. Phase 4 is awaiting review and must not be committed without approval. Do not initialize hosted services, deploy, push, or begin Phase 5 without separate explicit approval.

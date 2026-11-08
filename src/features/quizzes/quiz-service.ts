@@ -50,6 +50,17 @@ export async function listQuizzes(): Promise<QuizSummary[]> {
   return [...latest.values()];
 }
 
+export async function listQuizVersions(): Promise<QuizSummary[]> {
+  if (!supabase) throw new Error('Supabase is not configured.');
+  const { data, error } = await supabase
+    .from('quizzes')
+    .select(quizColumns)
+    .order('id')
+    .order('version', { ascending: false });
+  if (error) throw error;
+  return (data as Record<string, unknown>[]).map(mapQuiz);
+}
+
 export async function getQuizQuestions(
   quizId: string,
   quizVersion: number,

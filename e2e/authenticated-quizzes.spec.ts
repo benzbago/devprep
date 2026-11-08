@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
 const url = process.env.VITE_SUPABASE_URL;
@@ -33,12 +34,19 @@ test('grades an authenticated quiz and persists real dashboard progress', async 
     await expect(page.getByRole('heading', { name: 'Code drafts' })).toBeVisible();
 
     await page.goto('/quizzes');
+    expect(
+      (
+        await new AxeBuilder({ page })
+          .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+          .analyze()
+      ).violations.filter(({ impact }) => impact === 'critical' || impact === 'serious'),
+    ).toEqual([]);
     await page.getByRole('link', { name: 'Take quiz' }).click();
     await page.getByRole('radio', { name: '3' }).click();
     await page.getByRole('radio', { name: 'A new array of transformed values' }).click();
     await page.getByRole('radio', { name: 'Value and type without coercion' }).click();
     await page.getByRole('button', { name: 'Submit quiz' }).click();
-    await expect(page.getByText('100%')).toBeVisible();
+    await expect(page.getByRole('heading', { name: '100%' })).toBeFocused();
 
     await page.goto('/dashboard');
     await expect(
@@ -51,6 +59,15 @@ test('grades an authenticated quiz and persists real dashboard progress', async 
     await expect(
       page.getByText('Latest score').locator('..').getByText('100%'),
     ).toBeVisible();
+    await expect(page.getByText('Keep it fresh')).toBeVisible();
+    await expect(page.getByText(/not AI-generated/i)).toBeVisible();
+    expect(
+      (
+        await new AxeBuilder({ page })
+          .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+          .analyze()
+      ).violations.filter(({ impact }) => impact === 'critical' || impact === 'serious'),
+    ).toEqual([]);
   } finally {
     if (data.user) await admin.auth.admin.deleteUser(data.user.id);
   }
