@@ -68,7 +68,11 @@ test('grades an authenticated quiz and persists real dashboard progress', async 
     await page.keyboard.press('Enter');
     await expect(page.getByRole('heading', { name: '100%' })).toBeFocused();
     await page.keyboard.press('Tab');
-    await expect(page.getByRole('button', { name: 'Start a new attempt' })).toBeFocused();
+    const newAttemptButton = page.getByRole('button', { name: 'Start a new attempt' });
+    await expect(newAttemptButton).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('radio', { name: '3' })).not.toBeChecked();
+    await expect(page.getByRole('button', { name: 'Submit quiz' })).toBeDisabled();
 
     await page.goto('/dashboard');
     await expect(
@@ -93,11 +97,34 @@ test('grades an authenticated quiz and persists real dashboard progress', async 
     await page.locator('body').focus();
     await tabTo(page, recommendationLink);
     await expect(recommendationLink).toBeFocused();
+    await page.keyboard.press('Tab');
+    const challengeLink = page.getByRole('link', {
+      name: 'Practice Normalize a list of words',
+    });
+    await expect(challengeLink).toBeFocused();
+    await expect(challengeLink).toHaveAttribute('href', '/challenges/normalize-words');
+    await page.keyboard.press('Shift+Tab');
+    await expect(recommendationLink).toBeFocused();
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL(/\/quizzes\/javascript-foundations\/1$/);
     await expect(
       page.getByRole('heading', { name: 'JavaScript foundations' }),
     ).toBeVisible();
+    await page.goto('/drafts');
+    const signOutButton = page.getByRole('button', { name: 'Sign out' });
+    await tabTo(page, signOutButton);
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible();
+    await page.goto('/dashboard');
+    await expect(
+      page.getByRole('heading', { name: 'Sample learning dashboard' }),
+    ).toBeVisible();
+    await expect(
+      page.getByText('Every figure below comes from your server-graded quiz attempts.'),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole('link', { name: 'Take JavaScript foundations' }),
+    ).toHaveCount(0);
     expect(
       (
         await new AxeBuilder({ page })
