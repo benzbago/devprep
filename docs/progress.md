@@ -2,7 +2,7 @@
 
 ## Current status
 
-Phases 1–3 have local checkpoint commits. Phase 4 is implemented and verified locally in the working tree, awaiting review before a checkpoint. GitHub CI and deployed Vercel routing have not been verified. No hosted service was provisioned, no payment method was added, and nothing was pushed or deployed.
+Phases 1–4 have local checkpoint commits through `2c7d986`. Phase 5 Stage 1 local release-readiness changes are approved for a local checkpoint while the manual Windows accessibility review remains open. GitHub CI, the actual Vercel runtime, and deployed routing have not been verified. No hosted service was provisioned, no payment method was added, and nothing was pushed or deployed.
 
 ## Phase 1 delivered
 
@@ -113,6 +113,85 @@ Non-blocking limitations and external checks:
 - GitHub Actions execution is pending because nothing was pushed.
 - Deployed Vercel `/api/*` routing is pending because no deployment was authorized. Local handler and browser tests do not prove deployed routing.
 
+## Phase 5 Stage 1 local release readiness — 2026-11-08
+
+Implemented locally:
+
+- Added `vercel.json` with a Vite SPA fallback that excludes `/api` paths. Hosted behavior remains unproven until a Vercel preview is authorized.
+- Added a nine-case black-box routing suite for SPA deep links, static/source assets, the grading endpoint, and unknown API paths, including a path nested beneath the grading route.
+- Extended the opt-in Vite grading adapter with exact grading-path matching and a JSON unknown-API `404`. This keeps local routing behavior honest but does not emulate the Vercel runtime.
+- Changed account presentation to sign-in only by default. `VITE_ENABLE_SIGNUP=true` explicitly reveals local signup controls for Mailpit testing; hosted Supabase Auth must separately disable registration.
+- Strengthened the authenticated quiz browser cleanup so deleting its admin-created confirmed Auth user verifies both draft and attempt counts return to zero.
+- Updated README, setup, architecture, security, deletion, project-plan, and portfolio documentation. The tutor remains labeled **“Demo — predefined responses.”**
+- Added exact Windows keyboard and screen-reader walkthrough instructions in `docs/manual-accessibility.md`.
+
+Passed locally without Supabase:
+
+- `npm run format:check`: passed after formatting the touched source files.
+- `npm run lint`: passed after adding `playwright.routing.config.ts` to the Node TypeScript project.
+- `npm run typecheck`: passed with no diagnostics.
+- `npm run test:run`: 18 files and 87 tests passed. The signup tests were first observed failing against the old always-visible account-creation UI, then passed after the explicit opt-in implementation.
+- `npm run build`: passed; Vite transformed 2,224 modules. The existing non-failing chunk warning is 668.45 kB (192.80 kB gzip).
+- `npm run test:e2e`: 14/14 desktop/mobile public smoke tests passed using an explicitly managed preview.
+- `npm run test:e2e:a11y`: 4/4 automated public accessibility tests passed.
+- Production-preview routing subset: 6/6 passed for five direct SPA routes and the emitted JavaScript asset. A first concurrent run suffered Playwright artifact-directory contention; the isolated rerun exited zero.
+- Vite-adapter routing: 9/9 passed for five direct SPA routes, its real source module, grading-handler `405`/`401` responses, and JSON `404` responses for two unknown API paths. The adapter used placeholder local Supabase values; the tested method/authentication boundaries returned before any database request.
+- `npm audit --omit=dev`: zero production vulnerabilities.
+- Full `npm audit`: the existing 10 moderate development-only `minimatch` paths remain; npm still offers only a forced breaking downgrade, which was not applied.
+
+Passed, failed, and blocked routing evidence is intentionally separated:
+
+- Vite production preview passed deep-link and emitted-asset checks. Its normal SPA fallback returned `200` HTML for `/api/*`, as expected; it is not an API runtime.
+- The opt-in local Vite adapter passed the grading and unknown-API boundary checks. These exercise the real Web grading handler but a simulated router.
+- Vercel CLI 65.12.1 downloaded successfully. `vercel dev` was attempted in non-interactive mode without linking or creating a project, but exited 1 because no Vercel credentials existed. No login was performed. Actual local Vercel-runtime behavior is blocked, and hosted preview/production routing remains pending.
+
+Automated public-sample keyboard evidence recorded on 2026-11-09:
+
+- A headless Desktop Chrome Playwright run completed the public sample quiz with keyboard activation. Immediately after `Enter` submitted the form, `document.activeElement` was the `100%` result `H2` with `tabindex="-1"`. This matches step 6 of `docs/manual-accessibility.md`: focus moved to the score heading.
+- Before the fix, one `Tab` moved focus to the “Skip to main content” link (`href="#main-content"`), wrapping to the document start and failing step 7. The result block now precedes the existing submit action in normal DOM order. Focus remains on the score heading immediately after submission; one `Tab` now focuses the **Check sample answers** button.
+- The regression assertion was observed failing before the layout change. After rebuilding, the focused Chromium keyboard test passed 1/1, the `PublicSampleQuizPage` component test passed 1/1, and the complete desktop/mobile Playwright accessibility suite passed 4/4. The build passed with the existing non-failing bundle-size warning.
+- These are automated keyboard and axe results, not Windows Narrator observations. Manual Narrator checks remain separate and are not inferred from automation.
+
+Automated signed-in keyboard and accessible-name evidence recorded on 2026-11-09:
+
+- The existing authenticated Chromium suite used keyboard input to answer all three quiz questions and submit the quiz against the disposable local Supabase stack. After authoritative grading, focus was on the `100%` score heading. One `Tab` focused the **Start a new attempt** button, a relevant quiz action in normal result order rather than the site header or skip link.
+- Using the saved graded attempt, repeated `Tab` presses on the signed-in Dashboard reached a link with the accessible name **Take JavaScript foundations** and destination `/quizzes/javascript-foundations/1`. The name identifies the quiz destination. Activating the link with `Enter` opened that URL and displayed the **JavaScript foundations** page heading.
+- `npm run test:e2e:quiz` executed 1/1 authenticated Chromium test with no skips and passed, including the existing account-deletion cleanup assertions. No application fix was required. These are automated keyboard and accessible-name results; unobserved Narrator speech remains pending.
+
+Blocked or pending:
+
+- Manual accessibility observation recorded on 2026-11-09: during the signed-in quiz walkthrough in Chrome with Windows Narrator, submitting the quiz caused Narrator to announce the score exactly once. That specific duplicate-announcement check passed. Browser and Narrator versions were not reported.
+- Additional signed-in observation recorded on 2026-11-09: Windows Narrator clearly announced the grading error, “The quiz could not be graded. Try again.” The recovery buttons also worked when tested. Those specific error-announcement and recovery-control checks passed.
+- Recovery observation recorded on 2026-11-09: after recovering from the signed-in grading error and resubmitting, the score appeared and the buttons worked. Successful grading after recovery passed.
+- Public sample quiz observation recorded on 2026-11-09: in Chrome with Windows Narrator, Narrator announced the score exactly once after submission. After one `Tab`, Narrator identified “Check sample answers.” The single-announcement and next-control identification checks passed.
+- Dashboard recommendation-link Narrator result submitted on 2026-11-09: **unsure**. The submission retained the template placeholder rather than reporting spoken words, so this is recorded separately from Playwright's verified accessible name **Take JavaScript foundations** and destination `/quizzes/javascript-foundations/1`; the Narrator identification check remains pending.
+- Signed-in post-submit focus, next-`Tab` behavior, and the Dashboard recommendation link have the automated evidence above. Manual Narrator speech for those focus targets remains pending wherever it was not specifically reported. Every other unreported manual check also remains pending; the previously recorded signed-in and public-sample passes are unchanged.
+- Compared with `docs/manual-accessibility.md`, the manual review remains open. Still pending are: browser and Narrator versions; public skip-link order/activation, full tab order, radio-key behavior, incomplete-submit state, manual focus confirmation, and narrow-viewport keyboard visibility; signed-in loading/validation focus, radio-key behavior, manual score-heading focus, fresh-attempt operation, Dashboard traversal and non-color/sample separation, and sign-out/account-change cleanup and tab order; plus Narrator checks for page titles, landmarks/navigation, radio names/states/positions, incomplete controls, loading messages, recommendation details/link purpose (currently unsure), and prior-user content removal. Automated Playwright and axe evidence is recorded separately and does not replace those manual observations. The user explicitly authorized the local checkpoint with this review still open.
+- GitHub Actions, Vercel preview/production routing, hosted Auth settings, remote migrations, and hosted account deletion remain Stage 2 checks requiring separate authorization.
+
+Final local checkpoint verification on 2026-11-09:
+
+- `npm run format:check`, `npm run lint`, and `npm run typecheck` passed. The first fresh typecheck caught a Node-project DOM-global reference in the new Playwright tab helper; using `element.ownerDocument.activeElement` preserved the browser assertion without broadening TypeScript libraries, and the rerun passed.
+- `npm run test:run`: 18 files and 87 tests passed. The honest sign-in-only copy test was observed failing before the misleading registration claim was replaced with “Account creation is not offered on this page”; the focused test and full suite then passed.
+- `npm run build`: passed with 2,224 transformed modules and the existing non-failing main-chunk warning (approximately 669 kB, 193 kB gzip).
+- Public desktop/mobile smoke tests passed 14/14; public desktop/mobile accessibility tests passed 4/4.
+- Vite-adapter routing passed 9/9 on a clean rerun. An initial run had 8 passing assertions and one Playwright trace-close `ENOENT`; the isolated rerun exited zero. This remains local-adapter evidence, not Vercel-runtime proof.
+- Real local Supabase verification passed: pgTAP 61/61, grading-handler integration 3/3, authenticated draft persistence 1/1, and authenticated quiz/keyboard/recommendation persistence 1/1, all without skips. The first draft-browser attempt reused a stale routing server and displayed the unconfigured state; after stopping that same-repository process, the clean rerun passed.
+- GitHub Actions and hosted Vercel `/api/*` routing remain pending. Manual accessibility review remains open exactly as recorded above.
+
+Local Supabase release verification completed on 2026-11-08:
+
+- Docker Client and Linux Server `29.9.2` were reachable on the `desktop-linux` context. The target was confirmed as the unlinked, disposable `devprep-local` stack from this repository: no `supabase/.temp/project-ref` existed, config used loopback ports, and the database container was `supabase_db_devprep-local`.
+- Before reset, `auth.users`, `public.code_drafts`, and `public.quiz_attempts` each contained zero rows. Only checked-in migrations `20261104000100` and `20261107000100` were recorded, so there was no data to preserve.
+- `npx supabase db reset` explicitly targeted `127.0.0.1:54322` and applied both checked-in migrations.
+- `npm run test:db`: 61/61 real pgTAP assertions passed across the draft/RLS and quiz/grading policy files.
+- The first handler-integration attempt failed during setup and skipped all three tests because a stale Kong container binding exposed the correctly labeled local stack on port `54331` while the current config and CLI reported `54321`. No application code was changed. Stopping and restarting the same local stack recreated Kong on `54321`; the Auth health endpoint then returned `200`.
+- `npm run test:integration:quiz`: the clean rerun executed 3/3 tests with no skips and passed, including real handler/database grading and concurrent idempotency coverage.
+- `npm run test:e2e:auth`: executed 1/1 authenticated Chromium draft-persistence test with no skips and passed.
+- `npm run test:e2e:quiz`: executed 1/1 authenticated Chromium quiz test with no skips and passed. It created a draft and attempt, deleted the confirmed test user through the admin flow, and asserted that both user-owned draft and attempt counts became zero.
+- An independent post-test query confirmed `auth.users=0`, `public.code_drafts=0`, and `public.quiz_attempts=0`.
+- These results are local Supabase and local Vite-adapter evidence. They do not verify GitHub Actions or deployed Vercel `/api/*` routing, which remain pending.
+
 ## Verification record
 
 Final boundary checks run on 2026-11-04:
@@ -170,7 +249,7 @@ Phase 2 database verification completed on 2026-11-04:
 
 - Signed-out dashboard figures are sample content; signed-in figures require verified authoritative attempts.
 - Tutor content is intentionally finite and cannot analyze arbitrary questions or code.
-- Vercel SPA/API rewrite behavior is not configured or verified until deployment preparation in Phase 5.
+- Vercel SPA/API rewrite configuration is prepared but has not run in the Vercel runtime or a hosted deployment.
 - GitHub Actions has not run because no GitHub repository was created or pushed.
 - Supabase CLI is pinned at `3.0.0`. `npm run test:e2e:auth` fails fast with exit code 1 when local values are absent, so a skipped-only run cannot be mistaken for verification.
 - Supabase's default hosted email sender is restricted to project-team addresses and is rate-limited. Public hosted signup configuration is deferred; no SMTP provider was added and email confirmation was not automatically disabled.
@@ -178,4 +257,4 @@ Phase 2 database verification completed on 2026-11-04:
 
 ## Next authorized step
 
-Phase 4 implementation and local verification are complete in the uncommitted working tree. Stop for review; do not commit, push, deploy, provision resources, or begin Phase 5 without separate explicit approval.
+Phase 5 Stage 1 is authorized for a local checkpoint with manual accessibility review still open. Do not push, log in to Vercel, provision hosted resources, apply remote migrations, deploy, or begin Stage 2 without separate explicit approval.

@@ -66,6 +66,20 @@ export function PublicSampleQuizPage() {
             </div>
           </fieldset>
         ))}
+        {score !== undefined ? (
+          <div className="rounded-2xl border border-amber-300/20 p-6">
+            <h2
+              className="text-4xl font-bold text-white"
+              ref={resultHeadingRef}
+              tabIndex={-1}
+            >
+              {score}%
+            </h2>
+            <p className="mt-2 text-slate-400">
+              Local sample result only. Nothing was saved.
+            </p>
+          </div>
+        ) : null}
         <button
           className="rounded-xl bg-indigo-400 px-5 py-3 font-semibold text-slate-950 disabled:cursor-not-allowed disabled:bg-slate-500 disabled:text-slate-950"
           disabled={Object.keys(answers).length !== publicSampleQuiz.questions.length}
@@ -74,20 +88,6 @@ export function PublicSampleQuizPage() {
           Check sample answers
         </button>
       </form>
-      {score !== undefined ? (
-        <div className="mt-8 rounded-2xl border border-amber-300/20 p-6">
-          <h2
-            className="text-4xl font-bold text-white"
-            ref={resultHeadingRef}
-            tabIndex={-1}
-          >
-            {score}%
-          </h2>
-          <p className="mt-2 text-slate-400">
-            Local sample result only. Nothing was saved.
-          </p>
-        </div>
-      ) : null}
     </section>
   );
 }

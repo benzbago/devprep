@@ -19,6 +19,7 @@
     "vite.config.ts",
     "playwright.config.ts",
     "playwright.quiz.config.ts",
+    "playwright.routing.config.ts",
     "vitest.integration.config.ts",
     "e2e/**/*.ts",
     "api/**/*.ts",

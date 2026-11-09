@@ -1,4 +1,4 @@
-# Phase 4 Architecture
+# DevPrep Architecture
 
 ## Runtime shape
 
@@ -54,3 +54,5 @@ The UI displays up to two decimal places, identifies one-version evidence as an 
 Local authenticated Playwright uses an opt-in Vite middleware adapter that passes `/api/quizzes/grade` requests to the exact Web handler. Direct handler/database tests also invoke that handler with Web `Request` objects.
 
 These checks prove handler behavior and local persistence, not Vercel routing or SPA rewrites. Deployed `/api/*` precedence and production routing remain pending until an explicitly authorized deployment verification.
+
+Phase 5 adds a checked-in `vercel.json` SPA rewrite that excludes `/api` paths. The local Vite adapter also returns a JSON 404 for unknown `/api/*` paths so its black-box routing contract covers the same boundary. Vite remains a simulation: Vercel CLI 65.12.1 required account credentials before it would start `vercel dev`, so neither the actual local Vercel runtime nor hosted routing has been verified.

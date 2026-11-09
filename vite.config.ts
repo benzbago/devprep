@@ -7,7 +7,13 @@ function localGradingApi(): Plugin {
   return {
     name: 'devprep-local-grading-api',
     configureServer(server) {
-      server.middlewares.use('/api/quizzes/grade', (incoming, outgoing) => {
+      server.middlewares.use('/api/quizzes/grade', (incoming, outgoing, next) => {
+        const requestUrl = new URL(incoming.url ?? '/', 'http://local.devprep');
+        if (requestUrl.pathname !== '/') {
+          next();
+          return;
+        }
+
         void (async () => {
           const bodyParts: string[] = [];
           for await (const value of incoming) {
@@ -42,6 +48,11 @@ function localGradingApi(): Plugin {
           outgoing.setHeader('content-type', 'application/json');
           outgoing.end(JSON.stringify({ error: 'GRADING_UNAVAILABLE' }));
         });
+      });
+      server.middlewares.use('/api', (_incoming, outgoing) => {
+        outgoing.statusCode = 404;
+        outgoing.setHeader('content-type', 'application/json');
+        outgoing.end(JSON.stringify({ error: 'API_ROUTE_NOT_FOUND' }));
       });
     },
   };

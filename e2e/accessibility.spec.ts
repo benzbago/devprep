@@ -29,6 +29,8 @@ test('public sample supports keyboard grading with one result announcement path'
   const result = page.getByRole('heading', { name: '100%' });
   await expect(result).toBeFocused();
   await expect(result.locator('xpath=ancestor-or-self::*[@aria-live]')).toHaveCount(0);
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('button', { name: /check sample answers/i })).toBeFocused();
   await expectNoSeriousViolations(page);
 });
 

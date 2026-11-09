@@ -2,8 +2,13 @@ import { useState, type FormEvent } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 
 import { useAuth } from './auth-context';
+import { isSignupEnabled } from './signup-config';
 
-export function AuthPage() {
+export function AuthPage({
+  signupEnabled = isSignupEnabled(import.meta.env),
+}: {
+  signupEnabled?: boolean;
+}) {
   const auth = useAuth();
   const [mode, setMode] = useState<'signIn' | 'signUp'>('signIn');
   const [email, setEmail] = useState('');
@@ -58,6 +63,12 @@ export function AuthPage() {
       <p className="mt-4 leading-7 text-slate-400">
         Save private code drafts. Your code is never run or checked.
       </p>
+      {!signupEnabled ? (
+        <p className="mt-3 text-sm leading-6 text-slate-400">
+          Account creation is not offered on this page. Sign in with an existing confirmed
+          account, or continue with the public demo.
+        </p>
+      ) : null}
       <form
         className="mt-8 space-y-5 rounded-2xl border border-white/10 bg-white/[0.035] p-6"
         onSubmit={(event) => void submit(event)}
@@ -98,18 +109,20 @@ export function AuthPage() {
           {pending ? 'Please wait…' : mode === 'signIn' ? 'Sign in' : 'Create account'}
         </button>
       </form>
-      <button
-        className="mt-5 text-sm font-semibold text-indigo-300 hover:text-indigo-200"
-        onClick={() => {
-          setMode(mode === 'signIn' ? 'signUp' : 'signIn');
-          setNotice(undefined);
-        }}
-        type="button"
-      >
-        {mode === 'signIn'
-          ? 'Need an account? Create one'
-          : 'Already have an account? Sign in'}
-      </button>
+      {signupEnabled ? (
+        <button
+          className="mt-5 text-sm font-semibold text-indigo-300 hover:text-indigo-200"
+          onClick={() => {
+            setMode(mode === 'signIn' ? 'signUp' : 'signIn');
+            setNotice(undefined);
+          }}
+          type="button"
+        >
+          {mode === 'signIn'
+            ? 'Need an account? Create one'
+            : 'Already have an account? Sign in'}
+        </button>
+      ) : null}
     </section>
   );
 }

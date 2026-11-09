@@ -1,8 +1,8 @@
 # DevPrep AI Project Plan
 
-**Status:** Phase 4 implemented and locally verified pending final review; GitHub CI and deployed Vercel routing remain unverified
+**Status:** Phases 1–4 checkpointed; Phase 5 Stage 1 is approved for a local checkpoint with manual accessibility review open
 
-**Last updated:** 2026-11-07
+**Last updated:** 2026-11-09
 **Product description:** A developer learning platform with a clearly labeled AI tutor demo. Version 1 does not use a live AI model and does not execute code.
 
 ## 1. Product intent
@@ -363,4 +363,4 @@ Version 1 must not claim:
 
 ## 15. Approval gate
 
-Phases 1–4 were approved for local implementation. Phase 4 is awaiting review and must not be committed without approval. Do not initialize hosted services, deploy, push, or begin Phase 5 without separate explicit approval.
+Phase 5 Stage 1 is approved for local implementation only. Manual Windows keyboard and screen-reader walkthroughs remain a release gate until the user performs them. Stage 2 requires separate authorization before any GitHub push, hosted resource, remote migration, Vercel link, preview, or production deployment.

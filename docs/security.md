@@ -24,6 +24,8 @@ Public demo routes remain static and credential-free. Optional account routes us
 
 `.env`, `.env.*`, and `*.local` are ignored. `.env.example` contains names and warnings only. `VITE_` values are public. `SUPABASE_SECRET_KEY` or the local legacy service-role key exists only in server/test processes and must never use a `VITE_` prefix.
 
+`VITE_ENABLE_SIGNUP` is a public presentation flag, not an authorization control. Signup controls are hidden unless it is exactly `true`; a hosted project must separately disable public registration in Supabase Auth settings. The release plan uses a confirmed test user created through the supported Auth admin flow and does not add SMTP or weaken email confirmation.
+
 ## Answer-key threat model
 
 Authenticated answer keys are absent from frontend modules, API responses, and production browser assets. They are stored in a non-exposed private schema and reached only inside the server-authorized grading transaction.
