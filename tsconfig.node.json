@@ -23,6 +23,7 @@
     "vitest.integration.config.ts",
     "e2e/**/*.ts",
     "api/**/*.ts",
+    "tests/**/*.ts",
     "shared/**/*.ts"
   ]
 }

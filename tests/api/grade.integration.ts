@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import type { QuizSubmission } from '../../shared/quiz-contract';
-import { POST } from './grade';
+import { POST } from '../../api/quizzes/grade';
 
 const url = process.env.VITE_SUPABASE_URL;
 const publishableKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
