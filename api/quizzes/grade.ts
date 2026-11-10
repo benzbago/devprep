@@ -103,3 +103,7 @@ export function createGradeHandler(dependencies: GradeDependencies) {
 export async function POST(request: Request) {
   return createGradeHandler(createServerDependencies())(request);
 }
+
+export function GET() {
+  return jsonResponse(405, { error: 'METHOD_NOT_ALLOWED' }, { allow: 'POST' });
+}

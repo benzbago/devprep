@@ -38,4 +38,10 @@ describe('Vercel release safety', () => {
 
     expect(importsWithTypeScriptExtensions).toEqual([]);
   });
+
+  it('exports GET so Vercel returns the handler JSON for unsupported reads', () => {
+    const source = readFileSync(resolve(repositoryRoot, 'api/quizzes/grade.ts'), 'utf8');
+
+    expect(source).toMatch(/export\s+(?:async\s+)?function\s+GET\s*\(/);
+  });
 });
