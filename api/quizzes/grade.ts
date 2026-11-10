@@ -2,9 +2,9 @@ import {
   quizSubmissionSchema,
   type GradedAttempt,
   type QuizSubmission,
-} from '../../shared/quiz-contract.ts';
-import { jsonResponse, MAX_GRADING_BODY_BYTES } from '../_lib/http.ts';
-import { createServerDependencies } from '../_lib/server-supabase.ts';
+} from '../../shared/quiz-contract.js';
+import { jsonResponse, MAX_GRADING_BODY_BYTES } from '../_lib/http.js';
+import { createServerDependencies } from '../_lib/server-supabase.js';
 
 const knownServiceErrors = [
   'QUIZ_NOT_FOUND',

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import type { GradedAttempt, QuizSubmission } from '../../shared/quiz-contract';
-import { createGradeHandler, GradeServiceError } from './grade';
+import { createGradeHandler, GradeServiceError } from '../../api/quizzes/grade';
 
 const validSubmission: QuizSubmission = {
   quizId: 'javascript-foundations',

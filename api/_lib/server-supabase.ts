@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 
-import { gradedAttemptSchema, type QuizSubmission } from '../../shared/quiz-contract.ts';
-import { GradeServiceError, type GradeDependencies } from '../quizzes/grade.ts';
+import { gradedAttemptSchema, type QuizSubmission } from '../../shared/quiz-contract.js';
+import { GradeServiceError, type GradeDependencies } from '../quizzes/grade.js';
 
 const rpcRowSchema = z.object({
   id: z.string(),
